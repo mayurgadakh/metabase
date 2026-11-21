@@ -6,8 +6,8 @@ import {
 } from "../../ResizeNode/ResizeNode";
 import {
   type DroppedCardEmbedNodeData,
-  cleanupFlexContainerNodes,
   getCardEmbedDropSide,
+  unwrapSingleChildFlexContainers,
 } from "../utils";
 
 export const handleCardDropOnCard = (
@@ -87,10 +87,10 @@ export const handleCardDropOnCard = (
 
   tr.replaceWith(adjustedReplacePos, adjustedReplacePos + replaceSize, wrapper);
 
-  view.dispatch(tr);
-
   if (cameFromFlexContainer) {
-    cleanupFlexContainerNodes(view);
+    unwrapSingleChildFlexContainers(tr);
   }
+
+  view.dispatch(tr);
   return true;
 };

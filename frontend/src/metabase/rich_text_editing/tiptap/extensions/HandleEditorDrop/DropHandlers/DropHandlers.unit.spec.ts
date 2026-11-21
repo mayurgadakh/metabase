@@ -250,6 +250,28 @@ describe("card drop handlers", () => {
     editor.destroy();
   });
 
+  it("reverts dropping a chart out of a group with a single undo", () => {
+    const editor = makeEditor([
+      resizeNode(flexContainer([card(1), card(2)])),
+      resizeNode(card(3)),
+    ]);
+
+    handleCardDropOnCard(
+      dropCardOnCard(editor, 1, 3, "left"),
+      findCard(editor, 3).node,
+    );
+
+    expect(getFlexContainerCardIds(editor)).toEqual([[1, 3]]);
+    expect(getCardIds(editor)).toEqual([2, 1, 3]);
+
+    editor.commands.undo();
+
+    expect(getFlexContainerCardIds(editor)).toEqual([[1, 2]]);
+    expect(getCardIds(editor)).toEqual([1, 2, 3]);
+
+    editor.destroy();
+  });
+
   it("removes supporting text when the last chart in its group is dropped onto a standalone card", () => {
     const editor = makeEditor([
       resizeNode(flexContainer([supportingText("Lorem ipsum"), card(1)])),

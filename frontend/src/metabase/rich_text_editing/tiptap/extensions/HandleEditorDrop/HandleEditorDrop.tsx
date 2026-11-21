@@ -13,6 +13,7 @@ import {
   cleanupFlexContainerNodes,
   extractContainerSingleCardNode,
   getDroppedCardEmbedNodeData,
+  unwrapSingleChildFlexContainers,
 } from "./utils";
 
 export const HandleEditorDrop = Extension.create({
@@ -229,14 +230,17 @@ const handleCardDropOnParagraph = ({
 
   const targetPos = insertBefore ? resolvedPos.start() : resolvedPos.end();
   // Create a transaction that inserts the slice at the computed target position.
-  moveNode(
+  const tr = moveNode(
     view,
     originalPos,
     targetPos,
     cameFromFlexContainer ? view.state.schema.nodes.resizeNode : undefined,
   );
-  // If we have moved content out of a flex container, we may need to unwrap an unneeded flex container
-  cleanupFlexContainerNodes(view);
+  if (tr) {
+    // If we have moved content out of a flex container, we may need to unwrap an unneeded flex container.
+    // Done in the same transaction so that a single undo reverts the whole drop.
+    view.dispatch(unwrapSingleChildFlexContainers(tr));
+  }
   return true; // Indicate that we've handled the drop.
 };
 
@@ -275,5 +279,5 @@ const moveNode = (
 
   tr.insert(adjustedToPos, possiblyWrappedNode);
 
-  view.dispatch(tr);
+  return tr;
 };
